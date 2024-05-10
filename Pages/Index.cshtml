@@ -1,0 +1,32 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="text-center">
+
+    <h1 class="display-4">XML Converter</h1>
+    <form method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".txt" />
+        <button type="submit">Konvertera och ladda ner</button>
+    </form>
+</div>
+
+<!-- Todo clear errors -->
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger" role="alert">
+    <h4 class="alert-heading">Validation Error!</h4>
+    <hr />
+    <ul>
+        @foreach (var modelState in ViewData.ModelState.Values)
+            {
+                foreach (var error in modelState.Errors)
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            }
+        </ul>
+    </div>
+}
