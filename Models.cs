@@ -1,9 +1,9 @@
 using System.Xml.Serialization;
 
-public class PeopleClass
+public class People
 {
-    [XmlElement("people")]
-    public List<Person>? People { get; set; }
+    [XmlElement("person")]
+    public List<Person>? Persons { get; set; }
 }
 public class Person
 {
