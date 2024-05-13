@@ -10,11 +10,10 @@ namespace SoftHouseConverter.Pages
     {
         public void OnGet()
         {
-
+            ModelState.Clear();
         }
 
-
-        public async Task<IActionResult> OnPostAsync(IFormFile file, [FromServices] IWebHostEnvironment env)
+        public async Task<IActionResult> OnPostAsync(IFormFile file)
         {
             if (file?.Length == 0 || file == null)
             {
@@ -27,25 +26,19 @@ namespace SoftHouseConverter.Pages
                 return Page();
             }
 
-            if (ModelState.IsValid)
-            {
-                ModelState.Remove("file");
-            }
-
             try
             {
                 // Parse the uploaded file
                 List<Person> people = await ParseFileAsync(file);
 
                 // Serialize to XML
-                string xmlFileName = "people.xml";
-                string xmlFilePath = Path.Combine(env.WebRootPath, xmlFileName);
-
+                string xmlFilePath = "people.xml";
                 await SerializeToXmlAsync(people, xmlFilePath);
 
                 // XML file for download
                 byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(xmlFilePath);
                 return File(fileBytes, "application/xml", xmlFilePath);
+
             }
             catch (Exception ex)
             {
@@ -62,7 +55,7 @@ namespace SoftHouseConverter.Pages
 
             using (var reader = new StreamReader(file.OpenReadStream()))
             {
-                string line;
+                var line = "";
                 while ((line = await reader.ReadLineAsync()) != null)
                 {
                     line = line.TrimEnd('\\');
@@ -89,16 +82,16 @@ namespace SoftHouseConverter.Pages
                             {
                                 currentPerson.Phone ??= new Phone
                                 {
-                                    Mobile = parts.Length > 1 ? parts[1] : "",
-                                    LandLine = parts.Length > 2 ? parts[2] : ""
+                                    Mobile = parts.Length > 1 ? parts[1] : null,
+                                    LandLine = parts.Length > 2 ? parts[2] : null
                                 };
                             }
                             if (currentFamilyMember != null)
                             {
                                 currentFamilyMember.Phone ??= new Phone
                                 {
-                                    Mobile = parts.Length > 1 ? parts[1] : "",
-                                    LandLine = parts.Length > 2 ? parts[2] : ""
+                                    Mobile = parts.Length > 1 ? parts[1] : null,
+                                    LandLine = parts.Length > 2 ? parts[2] : null
                                 };
                             }
                             break;
@@ -107,18 +100,18 @@ namespace SoftHouseConverter.Pages
                             {
                                 currentPerson.Address ??= new Address
                                 {
-                                    Street = parts.Length > 1 ? parts[1] : "",
-                                    City = parts.Length > 2 ? parts[2] : "",
-                                    Zip = parts.Length > 3 ? parts[3] : ""
+                                    Street = parts.Length > 1 ? parts[1] : null,
+                                    City = parts.Length > 2 ? parts[2] : null,
+                                    Zip = parts.Length > 3 ? parts[3] : null
                                 };
                             }
                             if (currentFamilyMember != null)
                             {
                                 currentFamilyMember.Address ??= new Address
                                 {
-                                    Street = parts.Length > 1 ? parts[1] : "",
-                                    City = parts.Length > 2 ? parts[2] : "",
-                                    Zip = parts.Length > 3 ? parts[3] : ""
+                                    Street = parts.Length > 1 ? parts[1] : null,
+                                    City = parts.Length > 2 ? parts[2] : null,
+                                    Zip = parts.Length > 3 ? parts[3] : null
                                 };
                             }
                             break;
@@ -143,16 +136,16 @@ namespace SoftHouseConverter.Pages
             return people;
         }
 
-        private async Task SerializeToXmlAsync(List<Person> people, string filePath)
+        private async Task SerializeToXmlAsync(List<Person> persons, string filePath)
         {
-            var peopleClass = new PeopleClass { People = people };
-            XmlSerializer serializer = new XmlSerializer(typeof(PeopleClass));
+            var people = new People { Persons = persons };
+            XmlSerializer serializer = new XmlSerializer(typeof(People));
 
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 using (var writer = XmlWriter.Create(stream, new XmlWriterSettings { Indent = true, Encoding = Encoding.UTF8 }))
                 {
-                    await Task.Run(() => serializer.Serialize(writer, peopleClass));
+                    await Task.Run(() => serializer.Serialize(writer, people));
                 }
             }
         }
